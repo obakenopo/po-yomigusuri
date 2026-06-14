@@ -208,7 +208,7 @@ export default function About() {
           専門的なサポートが必要な方はよりそいホットライン（0120-279-338）へ。
         </p>
         <p style={{ color: "#4A4760", fontSize: 10, marginTop: 16, lineHeight: 1.8, textAlign: "center" }}>
-          © よなよな舎　お問い合わせ：yonayona-sha@gmail.com
+          © よなよな舎　お問い合わせ：yonayona.po@gmail.com
         </p>
         <p style={{ marginTop: 8, textAlign: "center" }}>
           <a href="/legal" style={{ color: "#4A4760", fontSize: 10, textDecoration: "underline" }}>
