@@ -286,15 +286,26 @@ export default function App() {
     setScreen("chat");
     const opening =
       next.visits <= 1
-        ? "…おかえり。はじめまして、かな。ぼく、ぽー。きみの へやに すんでる。ためいきは ぼくの ごはんだから、えんりょなく どうぞ。きょうは、どんな よるだった？"
+        ? "…はじめまして、かな。ぼく、ぽー。きみの へやの てんじょうに すんでる。ためいきは ぼくの ごはんだから、えんりょなく どうぞ。"
         : next.visits >= 7
-        ? `…おかえり。また きてくれたんだ。${next.visits}かいめの よるだね。きょうは どんな つかれ？`
-        : `…おかえり。${next.visits}かいめの よるだね。きょうは どうだった？`;
+        ? `…また きてくれたんだ。${next.visits}かいめだね。`
+        : `…おかえり。${next.visits}かいめだね。`;
     setHistory([
       { role: "assistant", content: JSON.stringify({ type: "message", text: opening }) },
     ]);
-    setFeed([{ kind: "ai", text: opening }]);
+    setFeed([{ kind: "ai", text: opening }, { kind: "choice" }]);
     setDone(false);
+  }
+
+  function handleChoice(choice) {
+    const text = choice === "rx"
+      ? "ほんも しょほうしてほしい"
+      : "きょうは ただ はなしたい";
+    const newFeed = feed
+      .filter(m => m.kind !== "choice")
+      .concat({ kind: "user", text });
+    setFeed(newFeed);
+    send(text, history, newFeed);
   }
 
   function handleSend() {
@@ -349,10 +360,8 @@ export default function App() {
             ぽーの よみぐすり
           </h1>
           <p style={{ color: T.mist, lineHeight: 2.2, fontSize: 13, margin: "0 0 34px" }}>
-            きみの へやに すんでる おばけの ぽーが、
-            <br />
-            きょうの つかれに きく ほんを しょほうします。
-            <br />
+            きみの へやに すんでる おばけの ぽーが、<br />
+            きょうの つかれに きく ほんを しょほうします。<br />
             ためいきは、ぽーの ごはんです。
           </p>
           <div style={{ display: "grid", gap: 14, justifyItems: "center" }}>
@@ -369,7 +378,7 @@ export default function App() {
               }}
             >
               <span style={{ color: T.lamp, marginRight: 10, animation: "blink 1.2s steps(2) infinite" }}>▶</span>
-              でんきを けす
+              ぽーに はなしかける
             </button>
             <button
               onClick={() => setScreen("drawer")}
@@ -387,7 +396,7 @@ export default function App() {
           </div>
           {omoide.visits > 0 && (
             <p style={{ color: T.mist, fontSize: 11, marginTop: 26 }}>
-              ぽーと すごした よる：{omoide.visits}かい
+              ぽーと すごした じかん：{omoide.visits}かい
             </p>
           )}
           <p style={{ color: "#4A4760", fontSize: 10, marginTop: 28, lineHeight: 1.8, maxWidth: 300, textAlign: "center" }}>
@@ -450,7 +459,23 @@ export default function App() {
 
           <div style={{ display: "grid", gap: 16 }}>
             {feed.map((m, i) =>
-              m.kind === "rx" ? (
+              m.kind === "choice" ? (
+                <div key={i} style={{ display: "grid", gap: 10, animation: "rise .3s steps(3) both" }}>
+                  <div style={{ fontSize: 12, color: T.mist, textAlign: "center" }}>きょうは、どっち？</div>
+                  <button
+                    onClick={() => handleChoice("rx")}
+                    style={{ ...rpgWindow, color: "#EAE7F4", padding: "11px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+                  >
+                    📖 ほんも しょほうしてほしい
+                  </button>
+                  <button
+                    onClick={() => handleChoice("talk")}
+                    style={{ ...rpgWindow, color: T.mist, padding: "11px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+                  >
+                    💬 きょうは ただ はなしたい
+                  </button>
+                </div>
+              ) : m.kind === "rx" ? (
                 <div key={i} style={{ display: "grid", gap: 16, marginTop: 6 }}>
                   {m.books.map((b, j) => (
                     <PrescriptionCard key={j} book={b} index={j} />
@@ -471,7 +496,7 @@ export default function App() {
                     onClick={backToTitle}
                     style={{ ...rpgWindow, color: T.mist, padding: "10px 26px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", marginTop: 4 }}
                   >
-                    ▶ また あした くる
+                    ▶ また くる
                   </button>
                 </div>
               ) : m.kind === "kakera" ? (
@@ -484,7 +509,7 @@ export default function App() {
                     onClick={backToTitle}
                     style={{ ...rpgWindow, justifySelf: "center", color: T.mist, padding: "10px 26px", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
                   >
-                    ▶ また あした くる
+                    ▶ また くる
                   </button>
                 </div>
               ) : (
@@ -515,7 +540,7 @@ export default function App() {
             {loading && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, color: T.mist, fontSize: 12 }}>
                 <PoDot px={2.5} style={{ animation: "floatPx 2s steps(2) infinite" }} />
-                ぽーが ほんだなを みてる
+                ぽーが かんがえてる
                 <span style={{ animation: "blink 1s steps(2) infinite" }}>…</span>
               </div>
             )}
@@ -555,7 +580,7 @@ export default function App() {
                     resize: "none",
                     color: "#EAE7F4",
                     padding: "12px 14px",
-                    fontSize: 13,
+                    fontSize: 16,
                     fontFamily: "inherit",
                     lineHeight: 1.6,
                   }}
