@@ -135,6 +135,19 @@ function PrescriptionCard({ book, index }) {
         <div style={{ fontSize: 12 }}><span style={{ color: "#8B8470", marginRight: 8 }}>のみかた</span>{book.dose}</div>
         <div style={{ fontSize: 12 }}><span style={{ color: "#8B8470", marginRight: 8 }}>ききめ</span>{book.effect}</div>
       </div>
+      <a
+        href={`https://www.amazon.co.jp/s?k=${encodeURIComponent(book.title + " " + book.author)}&tag=poyomigusuri-22`}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: "block", marginTop: 12, textAlign: "center",
+          fontSize: 12, color: "#8B6914", textDecoration: "none",
+          border: `2px solid #C8A84B`, borderRadius: 2,
+          padding: "7px 0", background: "#FBF3DC",
+        }}
+      >
+        📖 Amazonで見る →
+      </a>
     </div>
   );
 }
