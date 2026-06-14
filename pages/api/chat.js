@@ -122,6 +122,10 @@ booksは必ず3冊。`;
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: { message: "APIキーが設定されていません。.env.local に ANTHROPIC_API_KEY を設定してください。" } });
+  }
+
   const { messages } = req.body;
 
   try {
@@ -134,7 +138,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
+        max_tokens: 1500,
         system: SYSTEM_PROMPT,
         messages,
       }),
@@ -143,6 +147,6 @@ export default async function handler(req, res) {
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: { message: error.message } });
   }
 }
