@@ -193,26 +193,33 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
-  const [appHeight, setAppHeight] = useState("100dvh");
+  const [vp, setVp] = useState({ top: 0, left: 0, width: "100%", height: "100dvh" });
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => { setOmoide(loadOmoide()); }, []);
 
-  // iOS キーボード対応：visualViewport で高さを追従
+  // iOS キーボード対応：visualViewport の位置・サイズを完全追従
   useEffect(() => {
     function update() {
-      const h = window.visualViewport?.height ?? window.innerHeight;
-      setAppHeight(`${h}px`);
+      const v = window.visualViewport;
+      if (!v) return;
+      setVp({ top: v.offsetTop, left: v.offsetLeft, width: v.width, height: v.height });
     }
-    window.visualViewport?.addEventListener("resize", update);
-    update();
-    return () => window.visualViewport?.removeEventListener("resize", update);
+    const v = window.visualViewport;
+    if (v) {
+      v.addEventListener("resize", update);
+      v.addEventListener("scroll", update);
+      update();
+      return () => { v.removeEventListener("resize", update); v.removeEventListener("scroll", update); };
+    }
   }, []);
 
+  // スクロールを一番下に（scrollIntoView は iOS で誤動作するので scrollTop を直接操作）
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [feed, loading]);
 
   function resizeTextarea() {
@@ -304,21 +311,21 @@ export default function App() {
 
   return (
     <div style={{
-      height: appHeight,
+      position: "fixed",
+      top: vp.top,
+      left: vp.left,
+      width: typeof vp.width === "number" ? `${vp.width}px` : vp.width,
+      height: typeof vp.height === "number" ? `${vp.height}px` : vp.height,
       background: T.night,
       color: "#EAE7F4",
       fontFamily: "var(--font-dotgothic), sans-serif",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      position: "relative",
       overflow: "hidden",
-      paddingTop: "env(safe-area-inset-top)",
-      paddingLeft: "env(safe-area-inset-left)",
-      paddingRight: "env(safe-area-inset-right)",
     }}>
       <style>{`
-        html, body { background: #181726; margin: 0; padding: 0; }
+        html, body { background: #181726; margin: 0; padding: 0; overflow: hidden; overscroll-behavior: none; }
         @keyframes rise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
         @keyframes floatPx { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
@@ -372,7 +379,7 @@ export default function App() {
             よりそいホットライン（0120-279-338）へ。
           </p>
           <p style={{ color: "#4A4760", fontSize: 10, marginTop: 24, lineHeight: 1.8 }}>
-            © よなよな舎　お問い合わせ：yonayona-sha@gmail.com
+            © よなよな舎　お問い合わせ：yonayona.po@gmail.com
           </p>
           <p style={{ marginTop: 8, textAlign: "center" }}>
             <a href="/legal" style={{ color: "#4A4760", fontSize: 10, textDecoration: "underline" }}>
@@ -524,6 +531,12 @@ export default function App() {
                   onChange={e => {
                     setInput(e.target.value);
                     resizeTextarea();
+                  }}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      const el = messagesRef.current;
+                      if (el) el.scrollTop = el.scrollHeight;
+                    }, 350);
                   }}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   rows={1}
